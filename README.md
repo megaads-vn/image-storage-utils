@@ -1,6 +1,6 @@
 # Image Storage Utils
 
-A utils for fetching, processing and storing image files
+Utils for fetching, processing and storing image files
 
 ## Examples
 
