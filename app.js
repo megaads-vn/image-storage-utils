@@ -27,7 +27,7 @@ function ImageStorageUtils(options = {
             return fileBuffer;
         }).catch(error => {
             console.log('image-storage-utils loadImage exception', imageUrl, error.message);
-            throw "loadImage exception";
+            throw error;
         });
     };
 
