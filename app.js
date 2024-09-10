@@ -31,6 +31,16 @@ function ImageStorageUtils(options = {
         });
     };
 
+    this.removeImage = async function (imageUrl) {
+        let retval = false;
+        let filePath = buildFilePath(imageUrl);
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            retval = true;
+        }
+        return retval;
+    };
+
     this.fitImageSize = function (inputSize) {
         const RATIO_WEIGHT = 10000;
         const [requestWidth, requestHeight] = inputSize.split("x").map(Number);
