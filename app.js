@@ -11,6 +11,7 @@ function ImageStorageUtils(options = {
     var storagePath = options.storagePath;
     var allowStorage = options.allowStorage;
     var imageSizes = options.imageSizes;
+    var requestHeaders = options.requestHeaders || {};
 
     this.loadImage = async function (imageUrl) {
         let filePath = buildFilePath(imageUrl);
@@ -20,7 +21,8 @@ function ImageStorageUtils(options = {
         return axios({
             method: "GET",
             url: imageUrl,
-            responseType: "arraybuffer"
+            responseType: "arraybuffer",
+            headers: requestHeaders
         }).then(async response => {
             const fileBuffer = Buffer.from(response.data, 'base64');
             saveFile(filePath, fileBuffer);
