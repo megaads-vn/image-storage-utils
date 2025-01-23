@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require("path");
 const urlParser = require("url");
 const axios = require("axios");
+const Storage = require('./Storage');
 
 function ImageStorageUtils(options = {
     allowStorage: true,
@@ -12,11 +13,14 @@ function ImageStorageUtils(options = {
     var allowStorage = options.allowStorage;
     var imageSizes = options.imageSizes;
     var requestHeaders = options.requestHeaders || {};
+    var storageType = options.storageType || 'file';
+    var storage = new Storage(storageType, options);
+    var storageHandler = storage.getHandler();
 
-    this.loadImage = async function (imageUrl) {
+    this.loadImage = async function (imageUrl, options = {}) {
         let filePath = buildFilePath(imageUrl);
-        if (fs.existsSync(filePath) && fs.statSync(filePath).size > 0) {            
-            return fs.readFileSync(filePath);
+        if (await storageHandler.exists(filePath, options)) {
+            const buffer = await storageHandler.getFile(filePath, options);
         }
         return axios({
             method: "GET",
@@ -25,7 +29,7 @@ function ImageStorageUtils(options = {
             headers: requestHeaders
         }).then(async response => {
             const fileBuffer = Buffer.from(response.data, 'base64');
-            saveFile(filePath, fileBuffer);
+            storageHandler.saveFile(filePath, fileBuffer, options);
             return fileBuffer;
         }).catch(error => {
             console.log('image-storage-utils loadImage exception', imageUrl, error.message);
@@ -62,18 +66,20 @@ function ImageStorageUtils(options = {
         return sizes[0];
     }
 
-    async function saveFile(filePath, fileBuffer) {
-        let retval = false;
-        if (allowStorage) {
-            try {
-                await makeDir(path.dirname(filePath));
-                await fs.writeFile(filePath, fileBuffer, function () { });
-                retval = true;
-            } catch (error) {
-                console.log("image-storage-utils cannot save file", filePath, error.message);
-            }
-        }
-        return retval;
+    this.saveFile = async function (filePath, fileBuffer, options = {}) {
+        return storageHandler.saveFile(filePath, fileBuffer, options);
+    }
+
+    this.getFile = async function (filePath, options = {}) {
+        return storageHandler.getFile(filePath, options);
+    }
+
+    this.exists = async function (filePath, options = {}) {
+        return storageHandler.exists(filePath, options);
+    }
+
+    this.remove = async function (filePath, options = {}) {
+        return storageHandler.remove(filePath, options);
     }
 
     function makeDir(dirPath) {
@@ -88,7 +94,7 @@ function ImageStorageUtils(options = {
         let dirs = urlParser.parse(filePath).pathname;
         dirs = dirs.split('/');
         bucket = dirs.shift();
-        return storagePath + "/" + dirs.join('/');
+        return (storagePath ? storagePath + '/' : '') + dirs.join('/');
     }
 }
 
