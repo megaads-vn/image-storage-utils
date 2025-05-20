@@ -15,7 +15,7 @@ function ImageStorageUtils(options = {
 
     this.loadImage = async function (imageUrl) {
         let filePath = buildFilePath(imageUrl);
-        if (fs.existsSync(filePath) && fs.statSync(filePath).size > 0) {            
+        if (allowStorage && fs.existsSync(filePath) && fs.statSync(filePath).size > 0) {            
             return fs.readFileSync(filePath);
         }
         return axios({
