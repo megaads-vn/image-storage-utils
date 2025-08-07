@@ -2,6 +2,10 @@ const fs = require('fs');
 const path = require("path");
 const urlParser = require("url");
 const axios = require("axios");
+const https = require('https');
+const httpsAgent = new https.Agent({
+    rejectUnauthorized: false
+});
 
 function ImageStorageUtils(options = {
     allowStorage: true,
@@ -22,7 +26,8 @@ function ImageStorageUtils(options = {
             method: "GET",
             url: imageUrl,
             responseType: "arraybuffer",
-            headers: requestHeaders
+            headers: requestHeaders,
+            httpsAgent: httpsAgent
         }).then(async response => {
             const fileBuffer = Buffer.from(response.data, 'base64');
             saveFile(filePath, fileBuffer);
